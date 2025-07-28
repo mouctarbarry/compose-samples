@@ -1,0 +1,16 @@
+FROM hashicorp/vault:latest
+
+USER root
+
+# Créer le répertoire et configurer les permissions
+RUN mkdir -p /vault/data && \
+    chown -R vault:vault /vault && \
+    chmod -R 755 /vault
+
+USER vault
+
+ENTRYPOINT ["vault"]
+
+Be74U+khLK8t91kC4YHrNP7BXPzCMS8glTEWIo9H5fbZ
+FcWLjY4ayzn7jRKcD7snOU2YyloS0Swcg6uq8PhK/ctU
+7G6M5omVA8mPhdYKKCS14IcNQeNBCohy+kP36vgAcdNl

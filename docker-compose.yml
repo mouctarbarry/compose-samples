@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  vault:
+    build:
+      context: .
+      dockerfile: Dockerfile.vault
+    container_name: vault
+    ports:
+      - "8200:8200"
+    networks:
+      - devnet
+    cap_add:
+      - IPC_LOCK
+    command: server -config=/vault/config/vault.hcl
+    volumes:
+      - vault_data:/vault/data
+      - ./vault-config.hcl:/vault/config/vault.hcl:ro
+    environment:
+      VAULT_API_ADDR: http://0.0.0.0:8200
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+    networks:
+      - devnet
+    environment:
+      JAVA_OPTS: "-Dhudson.model.DirectoryBrowserSupport.CSP="
+    volumes:
+      - jenkins_home:/var/jenkins_home
+
+  jenkins-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jenkins-agent
+    networks:
+      - devnet
+    environment:
+      - JENKINS_URL=http://jenkins:8080
+      - JENKINS_SECRET=b3dc3f388528d006534b17370188017675af83fcc2475d75468e3798ebd73c2a
+      - JENKINS_AGENT_NAME=jenkins-agent
+      - JENKINS_AGENT_WORKDIR=/home/jenkins
+    depends_on:
+      - jenkins
+    command: >
+      java -jar /usr/share/jenkins/agent.jar
+      -url http://jenkins:8080/
+      -secret b3dc3f388528d006534b17370188017675af83fcc2475d75468e3798ebd73c2a
+      -name jenkins-agent
+      -webSocket
+      -workDir /home/jenkins
+
+networks:
+  devnet:
+    driver: bridge
+
+volumes:
+  jenkins_home:
+  vault_data:
